@@ -3,7 +3,6 @@ package com.PARCIAL.servicios;
 import com.PARCIAL.dtos.StatsResponse;
 import com.PARCIAL.entidades.DNA;
 import com.PARCIAL.repositorios.DNARepository;
-import com.PARCIAL.validacion.ValidDNA;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,7 @@ public class DNAService {
 
 
     @Transactional
-    public boolean isMutant(@ValidDNA String[] dna) {
+    public boolean isMutant(String[] dna) {
         String dnaString = String.join(",", dna); // Convertir el array de Strings a un solo String
 
         // Verificar si ya existe en la base de datos
@@ -38,14 +37,12 @@ public class DNAService {
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 // Verifica si hay secuencias en horizontal, vertical y diagonal
-                if (!counted[i][j] && hasHorizontalSequence(dna, i, j, counted)) {
-                    sequencesFound++;
-                }
-                if (!counted[i][j] && hasVerticalSequence(dna, i, j, counted)) {
-                    sequencesFound++;
-                }
-                if (!counted[i][j] && hasDiagonalSequence(dna, i, j, counted)) {
-                    sequencesFound++;
+                if (!counted[i][j]) {
+                    if (hasHorizontalSequence(dna, i, j, counted) ||
+                            hasVerticalSequence(dna, i, j, counted) ||
+                            hasDiagonalSequence(dna, i, j, counted)) {
+                        sequencesFound++;
+                    }
                 }
 
                 // Si ya se encontraron más de una secuencia, guardamos y retornamos
@@ -64,9 +61,12 @@ public class DNAService {
     // Métodos auxiliares para verificar secuencias
     private boolean hasHorizontalSequence(String[] dna, int row, int col, boolean[][] counted) {
         int n = dna.length;
-        if (col + 3 >= n) return false;  // Asegurarse de que no se salga del rango
+        if (col + 3 >= n) return false;
+
         char base = dna[row].charAt(col);
-        boolean found = base == dna[row].charAt(col + 1) && base == dna[row].charAt(col + 2) && base == dna[row].charAt(col + 3);
+        boolean found = (base == dna[row].charAt(col + 1)) &&
+                (base == dna[row].charAt(col + 2)) &&
+                (base == dna[row].charAt(col + 3));
 
         if (found) {
             counted[row][col] = true;
@@ -79,9 +79,12 @@ public class DNAService {
 
     private boolean hasVerticalSequence(String[] dna, int row, int col, boolean[][] counted) {
         int n = dna.length;
-        if (row + 3 >= n) return false;  // Asegurarse de que no se salga del rango
+        if (row + 3 >= n) return false;
+
         char base = dna[row].charAt(col);
-        boolean found = base == dna[row + 1].charAt(col) && base == dna[row + 2].charAt(col) && base == dna[row + 3].charAt(col);
+        boolean found = (base == dna[row + 1].charAt(col)) &&
+                (base == dna[row + 2].charAt(col)) &&
+                (base == dna[row + 3].charAt(col));
 
         if (found) {
             counted[row][col] = true;
@@ -93,14 +96,18 @@ public class DNAService {
     }
 
     private boolean hasDiagonalSequence(String[] dna, int row, int col, boolean[][] counted) {
-        return hasDiagonalRightSequence(dna, row, col, counted) || hasDiagonalLeftSequence(dna, row, col, counted);
+        return hasDiagonalRightSequence(dna, row, col, counted) ||
+                hasDiagonalLeftSequence(dna, row, col, counted);
     }
 
     private boolean hasDiagonalRightSequence(String[] dna, int row, int col, boolean[][] counted) {
         int n = dna.length;
-        if (row + 3 >= n || col + 3 >= n) return false;  // Asegurarse de que no se salga del rango
+        if (row + 3 >= n || col + 3 >= n) return false;
+
         char base = dna[row].charAt(col);
-        boolean found = base == dna[row + 1].charAt(col + 1) && base == dna[row + 2].charAt(col + 2) && base == dna[row + 3].charAt(col + 3);
+        boolean found = (base == dna[row + 1].charAt(col + 1)) &&
+                (base == dna[row + 2].charAt(col + 2)) &&
+                (base == dna[row + 3].charAt(col + 3));
 
         if (found) {
             counted[row][col] = true;
@@ -113,9 +120,12 @@ public class DNAService {
 
     private boolean hasDiagonalLeftSequence(String[] dna, int row, int col, boolean[][] counted) {
         int n = dna.length;
-        if (row + 3 >= n || col - 3 < 0) return false;  // Asegurarse de que no se salga del rango
+        if (row + 3 >= n || col - 3 < 0) return false;
+
         char base = dna[row].charAt(col);
-        boolean found = base == dna[row + 1].charAt(col - 1) && base == dna[row + 2].charAt(col - 2) && base == dna[row + 3].charAt(col - 3);
+        boolean found = (base == dna[row + 1].charAt(col - 1)) &&
+                (base == dna[row + 2].charAt(col - 2)) &&
+                (base == dna[row + 3].charAt(col - 3));
 
         if (found) {
             counted[row][col] = true;
@@ -125,7 +135,6 @@ public class DNAService {
         }
         return found;
     }
-
 
     @Transactional(readOnly = true)
     public StatsResponse getStats() {

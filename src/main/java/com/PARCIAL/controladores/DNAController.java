@@ -2,45 +2,52 @@ package com.PARCIAL.controladores;
 
 import com.PARCIAL.dtos.DNARequest;
 import com.PARCIAL.dtos.DNAResponse;
-import com.PARCIAL.dtos.StatsResponse;
 import com.PARCIAL.servicios.DNAService;
-import jakarta.validation.Valid;
+import com.PARCIAL.validacion.InvalidDNAException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin(origins = "*")
+@RequestMapping("/mutant")
 public class DNAController {
 
     @Autowired
     private DNAService dnaService;
 
-    @PostMapping("/mutant")
-    public ResponseEntity<DNAResponse> isMutant(@Valid @RequestBody DNARequest dnaRequest) {
-        boolean isMutant = dnaService.isMutant(dnaRequest.getDna());
+    @PostMapping
+    public ResponseEntity<DNAResponse> isMutant(@RequestBody DNARequest dnaRequest) {
+        try {
+            // Verificación del ADN
+            isValidDNA(dnaRequest.getDna());
 
-        DNAResponse response = new DNAResponse(isMutant);
-
-        if (isMutant) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            boolean isMutant = dnaService.isMutant(dnaRequest.getDna());
+            // Crea la respuesta usando DNAResponse
+            return ResponseEntity.ok(new DNAResponse(isMutant, isMutant ? "Es un mutante" : "No es un mutante"));
+        } catch (InvalidDNAException e) {
+            return ResponseEntity.badRequest().body(new DNAResponse(false, e.getMessage()));
         }
     }
 
-    @GetMapping("/stats")
-    public ResponseEntity<StatsResponse> getStats() {
-        StatsResponse statsResponse = dnaService.getStats();
-        return ResponseEntity.ok(statsResponse);
+    private void isValidDNA(String[] dna) {
+        if (dna == null || dna.length == 0 || dna.length != dna[0].length()) {
+            throw new InvalidDNAException("La matriz debe ser de tamaño NxN y no puede estar vacía");
+        }
+        for (String row : dna) {
+            if (row.length() != dna.length || !row.matches("[ATCG]+")) {
+                throw new InvalidDNAException("Cada fila debe contener solo caracteres A, T, C, G y ser de longitud N");
+            }
+        }
     }
 
-    @GetMapping("/")
-    public ResponseEntity<String> status() {
-        return ResponseEntity.ok("La API está funcionando correctamente");
+    @GetMapping
+    public ResponseEntity<String> getMutantInfo() {
+        return ResponseEntity.ok("El endpoint /mutant está funcionando");
     }
 }
+
+
 
 
 
