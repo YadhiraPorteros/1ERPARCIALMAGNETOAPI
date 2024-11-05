@@ -36,7 +36,7 @@ public class DNAController {
         }
         for (String row : dna) {
             if (row.length() != dna.length || !row.matches("[ATCG]+")) {
-                throw new InvalidDNAException("Cada fila debe contener solo caracteres A, T, C, G y ser de longitud N");
+                throw new InvalidDNAException("Cada fila debe contener solo caracteres A, T, C, G");
             }
         }
     }
